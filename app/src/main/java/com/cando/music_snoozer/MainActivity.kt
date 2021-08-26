@@ -1,6 +1,7 @@
 package com.cando.music_snoozer
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -9,7 +10,6 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -17,21 +17,18 @@ import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.widget.NumberPicker
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.music_snoozer.R
 import com.google.android.gms.ads.*
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.Date.from
 import kotlin.concurrent.thread
 
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private var state: State = State.BEFORE_PRESSING
     private var currentCountDownTimer: CountDownTimer? = null
-    private var notificationState: Boolean = false
     private var minToLong: Long = 0
     private var hourToLong: Long = 0
     private var realLong: Long = 0
@@ -111,9 +108,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun createCountDownTimer(initialMillis: Long): CountDownTimer =
         object : CountDownTimer(initialMillis, 1000L) {
+            val startMillis: Long = initialMillis
+
             override fun onTick(initialMillis: Long) {
                 updateRemainTime(initialMillis)
-                Log.d("realLong", "$initialMillis")
+                showNotification(startMillis, initialMillis)
+                Log.d("progress", "$startMillis ,$initialMillis")
 
             }
 
@@ -162,56 +162,63 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    private fun showNotification(initialMillis: Long) {
+    private fun showNotification(startMillis: Long, initialMillis: Long) {
+        val startMillisSeconds = (startMillis / 1000).toInt()
+        val notiRemainSeconds = (initialMillis / 1000).toInt()
+        val remainSeconds = "%02d초".format(notiRemainSeconds % 60)
+        var remainHours = "%02d시간".format(notiRemainSeconds / 3600)
+        var remainMinutes = "%02d분".format((notiRemainSeconds / 60) % 60)
+        if (notiRemainSeconds / 3600 == 0) {
+            remainHours = ""
+        }
+        if ((notiRemainSeconds / 60) % 60 == 0) {
+            remainMinutes = ""
+        }
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-
         }
+
+
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
 
         createNotificationChannel("stop")
-        var builder = NotificationCompat.Builder(this, "stop").apply {
+        val builder = NotificationCompat.Builder(this, "stop").apply {
             setSmallIcon(R.drawable.ic_launcher_background)
             setContentTitle("미디어 종료 시각")
             setContentText("oh..")
-            setContentIntent(pendingIntent) //어플로 복귀 가아니라 액티비티가 시작됨
-            setPriority(NotificationCompat.PRIORITY_LOW)
+            setContentIntent(pendingIntent)
+
+            priority = NotificationCompat.PRIORITY_LOW
         }
-        val max = initialMillis.toInt()
-        Log.d("progress", "$max")
-        var progress = 0
-        var percentage = 0
         val handler = Handler()
 
         with(NotificationManagerCompat.from(this)) {
-            if(notificationState){
-            builder.setProgress(max, progress, false)
+
+            builder.setProgress(startMillisSeconds, (startMillisSeconds - notiRemainSeconds), false)
             notify(notificationId, builder.build())
-            }
+
             Thread(Runnable {
-                while (progress < max) {
-                    progress += 1000
-                    try {
-                        //1초마다 갱신
-                        Thread.sleep(1000)
-                    } catch (e: InterruptedException) {
-                        e.printStackTrace()
+
+
+                handler.post(Runnable {
+                    if (notiRemainSeconds == 0) {
+                        builder.setContentText("종료되었습니다.")
+                        builder.setProgress(0, 0, false)
+                    } else {
+
+                        builder.setContentText("$remainHours $remainMinutes $remainSeconds 후에 종료")
+                        builder.setProgress(
+                            startMillisSeconds,
+                            (startMillisSeconds - notiRemainSeconds), false
+                        )
+
+
                     }
-                    handler.post(Runnable {
-                        if (progress == max) {
-                            builder.setContentText("끝")
-                            builder.setProgress(0, 0, false)
-                        } else {
-                            percentage = (progress * 100) / max
-                            builder.setContentText("${(max - progress) / 1000 / 60} 분 후 종료")
-                            builder.setProgress(max, progress, false)
-                            Log.d("progress", "$progress")
-                        }
-                        notify(notificationId, builder.build())
-                        cancel(notificationId)
-                    })
-                }
+                    notify(notificationId, builder.build())
+
+                })
+
             }).start()
         }
 
@@ -219,11 +226,35 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun cancelNotification() {
 
-        notificationState = false
+
         NotificationManagerCompat.from(this).apply {
             cancelAll()
-
         }
+    }
+
+    private fun startTimer() {
+        val timeSetView = findViewById<ConstraintLayout>(R.id.layout_setTime)
+        val countDownView = findViewById<ConstraintLayout>(R.id.layout_showRemainTime)
+
+        currentCountDownTimer = createCountDownTimer(realLong)
+        btn_start.text = "중지"
+        timeSetView.visibility = View.INVISIBLE
+        countDownView.visibility = View.VISIBLE
+        state = State.ON_PRESSED
+        Log.d("realLong", "$realLong")
+        currentCountDownTimer?.start()
+    }
+
+    private fun stopTimer() {
+        val timeSetView = findViewById<ConstraintLayout>(R.id.layout_setTime)
+        val countDownView = findViewById<ConstraintLayout>(R.id.layout_showRemainTime)
+
+        cancelNotification()
+        currentCountDownTimer?.cancel()
+        btn_start.text = "시작하기"
+        state = State.BEFORE_PRESSING
+        timeSetView.visibility = View.VISIBLE
+        countDownView.visibility = View.INVISIBLE
     }
 
 
@@ -231,8 +262,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         val hour: NumberPicker = findViewById(R.id.numberPicker_hour)
         val min: NumberPicker = findViewById(R.id.numberPicker_min)
 
-        val timeSetView = findViewById<ConstraintLayout>(R.id.layout_setTime)
-        val countDownView = findViewById<ConstraintLayout>(R.id.layout_showRemainTime)
 
 
 
@@ -242,36 +271,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 hourToLong = (hour.value * 60 * 1000 * 60).toLong()
                 realLong = minToLong + hourToLong
 
-
-
                 when (state) {
                     State.BEFORE_PRESSING -> {
-
-                        notificationState = true
-                        currentCountDownTimer = createCountDownTimer(realLong)
-                        btn_start.text = "중지"
-                        timeSetView.visibility = View.INVISIBLE
-                        countDownView.visibility = View.VISIBLE
-                        state = State.ON_PRESSED
-                        Log.d("realLong", "$realLong")
-                        currentCountDownTimer?.start()
-                        showNotification(realLong)
-
+                        startTimer()
                     }
                     State.ON_PRESSED -> {
-                        cancelNotification()
-                        currentCountDownTimer?.cancel()
-                        btn_start.text = "시작하기"
-                        state = State.BEFORE_PRESSING
-                        timeSetView.visibility = View.VISIBLE
-                        countDownView.visibility = View.INVISIBLE
+                        stopTimer()
 
                     }
-
-
                 }
-//            Toast.makeText(this, "${hour.value}시간 ${min.value}분", Toast.LENGTH_SHORT).show()
-
             }
         }
     }
