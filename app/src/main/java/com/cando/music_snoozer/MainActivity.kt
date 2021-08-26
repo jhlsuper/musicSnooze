@@ -3,7 +3,9 @@ package com.cando.music_snoozer
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -29,10 +31,11 @@ import kotlin.concurrent.thread
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private var state: State = State.BEFORE_PRESSING
     private var currentCountDownTimer: CountDownTimer? = null
-
+    private var notificationState: Boolean = false
     private var minToLong: Long = 0
     private var hourToLong: Long = 0
     private var realLong: Long = 0
+    private val notificationId = 1
     private lateinit var mAdView: AdView
 
 
@@ -75,6 +78,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }).start()
 
         btn_start.setOnClickListener(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cancelNotification()
     }
 
 
@@ -156,62 +164,68 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun showNotification(initialMillis: Long) {
 
-        val notificationId = 1
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+
         createNotificationChannel("stop")
-        var builder = NotificationCompat.Builder(this, "MY_channel").apply {
+        var builder = NotificationCompat.Builder(this, "stop").apply {
             setSmallIcon(R.drawable.ic_launcher_background)
             setContentTitle("미디어 종료 시각")
             setContentText("oh..")
+            setContentIntent(pendingIntent) //어플로 복귀 가아니라 액티비티가 시작됨
             setPriority(NotificationCompat.PRIORITY_LOW)
         }
         val max = initialMillis.toInt()
-        Log.d("progress","$max")
-        var progress =0
-        var percentage =0
+        Log.d("progress", "$max")
+        var progress = 0
+        var percentage = 0
         val handler = Handler()
-        with(NotificationManagerCompat.from(this)){
-            builder.setProgress(max,progress,false)
-            notify(notificationId,builder.build())
 
+        with(NotificationManagerCompat.from(this)) {
+            if(notificationState){
+            builder.setProgress(max, progress, false)
+            notify(notificationId, builder.build())
+            }
             Thread(Runnable {
-                while(progress < max){
-                    progress+=1000
+                while (progress < max) {
+                    progress += 1000
                     try {
                         //1초마다 갱신
                         Thread.sleep(1000)
-                    }
-                    catch (e:InterruptedException){
+                    } catch (e: InterruptedException) {
                         e.printStackTrace()
                     }
                     handler.post(Runnable {
-                        if(progress ==max){
+                        if (progress == max) {
                             builder.setContentText("끝")
-                            builder.setProgress(0,0,false)
-                        }else{
-                            percentage = (progress*100)/max
-                            builder.setContentText("${(max-progress)/1000/60} 분 후 종료")
-                            builder.setProgress(max,progress,false)
-                            Log.d("progress","$progress")
+                            builder.setProgress(0, 0, false)
+                        } else {
+                            percentage = (progress * 100) / max
+                            builder.setContentText("${(max - progress) / 1000 / 60} 분 후 종료")
+                            builder.setProgress(max, progress, false)
+                            Log.d("progress", "$progress")
                         }
-                        notify(notificationId,builder.build())
+                        notify(notificationId, builder.build())
+                        cancel(notificationId)
                     })
                 }
             }).start()
         }
 
-//        val channel = NotificationChannel(channelId, channelName, importance).apply {
-//            description = descriptionText
-//            builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
-//
-//        }
-//        val notificationManager: NotificationManager =
-//            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//
-//
-//        notificationManager.createNotificationChannel(channel)
-//
-//        notificationManager.notify(1000, builder.build())
     }
+
+    private fun cancelNotification() {
+
+        notificationState = false
+        NotificationManagerCompat.from(this).apply {
+            cancelAll()
+
+        }
+    }
+
 
     override fun onClick(v: View?) {
         val hour: NumberPicker = findViewById(R.id.numberPicker_hour)
@@ -233,7 +247,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 when (state) {
                     State.BEFORE_PRESSING -> {
 
-
+                        notificationState = true
                         currentCountDownTimer = createCountDownTimer(realLong)
                         btn_start.text = "중지"
                         timeSetView.visibility = View.INVISIBLE
@@ -245,11 +259,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
                     }
                     State.ON_PRESSED -> {
+                        cancelNotification()
                         currentCountDownTimer?.cancel()
                         btn_start.text = "시작하기"
                         state = State.BEFORE_PRESSING
                         timeSetView.visibility = View.VISIBLE
                         countDownView.visibility = View.INVISIBLE
+
                     }
 
 
