@@ -1,7 +1,6 @@
 package com.cando.music_snoozer
 
 import android.annotation.SuppressLint
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -127,7 +126,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 //                Toast.makeText(applicationContext, "음악을 성공적으로 멈추었습니다", Toast.LENGTH_SHORT).show()
                 updateRemainTime(0)
                 btn_start.text = "시작하기"
-
+                txt_remainHours.text = ""
+                txt_remainMinutes.text = ""
+                txt_remainSeconds.text = ""
             }
         }
 
@@ -136,9 +137,22 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         val remainSeconds = remainMills / 1000
         thread(start = true) {
             runOnUiThread {
-                txt_remainSeconds.text = "%02d초".format(remainSeconds % 60)
-                txt_remainHours.text = "%02d시간".format(remainSeconds / 3600)
-                txt_remainMinutes.text = "%02d분".format((remainSeconds / 60) % 60)
+                val t_remainSeconds = "%d초".format(remainSeconds % 60)
+                var t_remainHours = "%d시간".format(remainSeconds.toInt() / 3600)
+                var t_remainMinutes = "%d분".format((remainSeconds.toInt() / 60) % 60)
+                if (remainSeconds.toInt() / 3600 == 0) {
+                    t_remainHours = ""
+                }
+                if ((remainSeconds.toInt() / 60) % 60 == 0) {
+                    t_remainMinutes = ""
+                }
+                txt_remainHours.text = t_remainHours
+                txt_remainMinutes.text = t_remainMinutes
+                txt_remainSeconds.text = t_remainSeconds
+//                txt_remainSeconds.text = "%02d초".format(remainSeconds % 60)
+//                txt_remainHours.text = "%02d시간".format(remainSeconds / 3600)
+//                txt_remainMinutes.text = "%02d분".format((remainSeconds / 60) % 60)
+
             }
             Thread.sleep(remainMills)
         }
@@ -165,9 +179,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private fun showNotification(startMillis: Long, initialMillis: Long) {
         val startMillisSeconds = (startMillis / 1000).toInt()
         val notiRemainSeconds = (initialMillis / 1000).toInt()
-        val remainSeconds = "%02d초".format(notiRemainSeconds % 60)
-        var remainHours = "%02d시간".format(notiRemainSeconds / 3600)
-        var remainMinutes = "%02d분".format((notiRemainSeconds / 60) % 60)
+        val remainSeconds = "%d초".format(notiRemainSeconds % 60)
+        var remainHours = "%d시간".format(notiRemainSeconds / 3600)
+        var remainMinutes = "%d분".format((notiRemainSeconds / 60) % 60)
         if (notiRemainSeconds / 3600 == 0) {
             remainHours = ""
         }
@@ -248,7 +262,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private fun stopTimer() {
         val timeSetView = findViewById<ConstraintLayout>(R.id.layout_setTime)
         val countDownView = findViewById<ConstraintLayout>(R.id.layout_showRemainTime)
-
+        txt_remainHours.text = ""
+        txt_remainMinutes.text = ""
+        txt_remainSeconds.text = ""
         cancelNotification()
         currentCountDownTimer?.cancel()
         btn_start.text = "시작하기"
@@ -276,7 +292,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                         startTimer()
                     }
                     State.ON_PRESSED -> {
+
                         stopTimer()
+
 
                     }
                 }
