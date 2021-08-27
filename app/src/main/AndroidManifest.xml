@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.music_snoozer">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:allowBackup="true"
@@ -12,8 +13,12 @@
         android:theme="@style/Theme.Musicsnoozer">
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-6025350771534276~9563903051"
-            />
+            android:value="ca-app-pub-6025350771534276~9563903051" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+
+            android:resource="@drawable/ic_stopstop" />
+
 
         <activity android:name="com.cando.music_snoozer.MainActivity">
             <intent-filter>
@@ -21,7 +26,9 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
     </application>
+
 
 </manifest>

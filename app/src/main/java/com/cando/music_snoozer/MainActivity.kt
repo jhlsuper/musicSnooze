@@ -199,8 +199,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         createNotificationChannel("stop")
         val builder = NotificationCompat.Builder(this, "stop").apply {
             setSmallIcon(R.drawable.ic_launcher_background)
-            setContentTitle("미디어 종료 시각")
-            setContentText("oh..")
+            setContentTitle("미디어 종료.")
+
+            setContentText("시간 뒤 종료됩니다.")
             setContentIntent(pendingIntent)
 
             priority = NotificationCompat.PRIORITY_LOW
