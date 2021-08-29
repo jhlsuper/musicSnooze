@@ -81,6 +81,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         cancelNotification()
     }
 
+    override fun onStop() {
+        super.onStop()
+        cancelNotification()
+    }
+
 
     private fun stopMusic() {
 
