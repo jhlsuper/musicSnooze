@@ -161,18 +161,20 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private fun createNotificationChannel(channelId: String) {
         val name = "음악멈춰"
         val channelDescription = "description"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val importance = NotificationManager.IMPORTANCE_LOW
 
         val channel = NotificationChannel(channelId, name, importance)
         channel.apply {
             description = channelDescription
 
+            setSound(null,null)
         }
 
         // Finally register the channel with system
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
+
     }
 
 
