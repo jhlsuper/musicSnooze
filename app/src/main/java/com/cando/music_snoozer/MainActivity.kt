@@ -200,7 +200,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         val builder = NotificationCompat.Builder(this, "stop").apply {
             setSmallIcon(R.drawable.ic_launcher_background)
             setContentTitle("미디어 종료.")
-
+            setSound(null)
+            setVibrate(null)
             setContentText("시간 뒤 종료됩니다.")
             setContentIntent(pendingIntent)
 
