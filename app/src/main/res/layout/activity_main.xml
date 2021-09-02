@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="150dp"
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="20dp"
         android:fontFamily="@font/jalnan"
         android:gravity="center"
         android:text="예약 정지"
@@ -20,21 +20,26 @@
         android:textSize="60sp"
         android:textStyle="bold"
         android:visibility="visible"
+
         app:layout_constraintBottom_toTopOf="@id/guideline_0.3"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
+
+
+
 
     <FrameLayout
         android:id="@+id/layout_frame"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="@id/guideline_0.6"
+
+        app:layout_constraintBottom_toBottomOf="@id/guideline_0.7"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guideline_0.3">
+        app:layout_constraintTop_toBottomOf="@id/guideline_0.3">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_setTime"
@@ -181,7 +186,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/guideline_0.6"
+        app:layout_constraintTop_toBottomOf="@id/guideline_0.7"
 
 
         tools:ignore="HardcodedText" />
@@ -191,14 +196,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.25" />
+        app:layout_constraintGuide_percent="0.3" />
 
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_0.6"
+        android:id="@+id/guideline_0.7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.6" />
+        app:layout_constraintGuide_percent="0.7" />
+
+
 
     <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
         android:id="@+id/adView"
@@ -214,4 +221,5 @@
         ads:layout_constraintStart_toStartOf="parent">
 
     </com.google.android.gms.ads.AdView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
