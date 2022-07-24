@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -15,6 +16,7 @@ import android.os.CountDownTimer
 import android.os.Handler
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.NumberPicker
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
@@ -23,6 +25,7 @@ import com.example.music_snoozer.R
 import com.google.android.gms.ads.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.concurrent.thread
+import kotlin.math.log
 
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -74,6 +77,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }).start()
 
         btn_start.setOnClickListener(this)
+        viewNum1.setOnClickListener(this)
+        viewNum2.setOnClickListener(this)
     }
 
     override fun onDestroy() {
@@ -117,7 +122,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             override fun onTick(initialMillis: Long) {
                 updateRemainTime(initialMillis)
                 showNotification(startMillis, initialMillis)
-                Log.d("progress", "$startMillis ,$initialMillis")
+//                Log.d("progress", "$startMillis ,$initialMillis")
 
             }
 
@@ -286,6 +291,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(v: View?) {
         val hour: NumberPicker = findViewById(R.id.numberPicker_hour)
         val min: NumberPicker = findViewById(R.id.numberPicker_min)
+        val stopView :Button = findViewById(R.id.viewNum1)
+        val startView :Button = findViewById(R.id.viewNum2)
 
 
 
@@ -307,6 +314,20 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
                     }
                 }
+            }
+            R.id.viewNum1->{
+//                Log.d("네","네")
+                viewNum1.setBackgroundColor(Color.BLACK)
+                viewNum1.setTextColor(Color.WHITE)
+                viewNum2.setBackgroundColor(Color.WHITE)
+                viewNum2.setTextColor(Color.BLACK)
+            }
+            R.id.viewNum2->{
+//                Log.d("네","네")
+                viewNum2.setBackgroundColor(Color.BLACK)
+                viewNum2.setTextColor(Color.WHITE)
+                viewNum1.setBackgroundColor(Color.WHITE)
+                viewNum1.setTextColor(Color.BLACK)
             }
         }
     }
